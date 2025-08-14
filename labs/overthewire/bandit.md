@@ -57,8 +57,98 @@ Anslöt med `ssh bandit10@bandit.labs.overthewire.org -p 2220`
 Uppgiften var att dekoda innehållet i `data.txt` som var base64-kodat  
 Körde `base64 -d data.txt` för att dekoda och få lösenordet (sparas separat)  
 
-Nivå 11  
-Anslöt med `ssh bandit11@bandit.labs.overthewire.org -p 2220`  
-Uppgiften var att dekryptera innehållet i `data.txt` som var krypterat med ROT13  
-Körde `cat data.txt | tr 'A-Za-z' 'N-ZA-Mn-za-m'` för att dekryptera texten och få lösenordet (sparas separat)  
+Nuvå11
 
+**Uppgift:**  
+`data.txt` innehåller text där alla bokstäver (a–z, A–Z) är ROT13-kodade. Målet är att avkoda texten och hitta lösenordet.
+
+**Vad är ROT13?**  
+ROT13 (rotate by 13) är en enkel substitutionschiffer där varje bokstav ersätts av den som ligger 13 steg fram i alfabetet.  
+- A ↔ N  
+- B ↔ O  
+- C ↔ P  
+- …  
+- M ↔ Z  
+
+Eftersom alfabetet har 26 bokstäver innebär 13 steg att samma operation fungerar åt båda hållen — ROT13 av en ROT13-sträng ger tillbaka originalet.
+
+Använt kommando
+cat data.txt | tr 'A-Za-z' 'N-ZA-Mn-za-m'
+
+Förklaring av kommandot:
+
+cat data.txt → visar innehållet i filen.
+
+| (pipe) skickar utdata från cat som indata till nästa kommando.
+
+tr (translate) byter tecken baserat på två teckenuppsättningar:
+
+'A-Za-z' = alla stora och små bokstäver i alfabetisk ordning.
+
+'N-ZA-Mn-za-m' = samma bokstäver men med början 13 steg fram (A→N, a→n).
+
+När tr körs på texten i filen byts varje bokstav ut enligt ROT13-regeln. Resultatet blir läsbart och innehåller lösenordet.
+
+#Nivå12
+
+Uppgift  
+data.txt är en hexdump av en fil som har komprimerats flera gånger med olika metoder. Målet är att återskapa originalfilen och läsa lösenordet.
+
+Arbetsmetod:
+1. Skapa en temporär arbetsmapp i /tmp:
+  
+   cd /tmp
+   mktemp -d
+
+Kopiera sökvägen som skrivs ut, exempel: /tmp/tmp.a1B2c3D4.
+
+    Kopiera filen data.txt till mappen:
+
+cp ~/data.txt /tmp/tmp.a1B2c3D4
+cd /tmp/tmp.a1B2c3D4
+
+Konvertera hexdumpen tillbaka till binär fil:
+
+xxd -r data.txt > data.bin
+
+Identifiera filtypen:
+
+file data.bin
+
+Byt namn på filen utifrån filtyp och packa upp med rätt verktyg:
+
+    Om gzip compressed data:
+
+mv data.bin data.gz
+gunzip data.gz
+
+Om bzip2 compressed data:
+
+mv data.bin data.bz2
+bunzip2 data.bz2
+
+Om POSIX tar archive:
+
+    mv data.bin data.tar
+    tar xf data.tar
+
+    Om annat: anpassa efter vad file visar.
+
+Upprepa steg 4–5 för varje ny fil som skapas, tills file visar att filen är en textfil.
+
+Läs lösenordet:
+
+    cat filnamn
+
+Förklaring:
+
+    xxd -r återskapar binärdata från en hexdump.
+
+    file analyserar filens faktiska innehåll och avgör hur den ska hanteras.
+
+    Rätt packningsverktyg används beroende på filtyp.
+
+    Filtillägget ändras vid varje steg för att tydligt visa vilken typ filen har, vilket gör det lättare att välja rätt kommandon.
+
+Lösenord:
+Finns i den sista textfilen efter att alla uppackningar är klara.
